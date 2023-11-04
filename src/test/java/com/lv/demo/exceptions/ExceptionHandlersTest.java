@@ -27,14 +27,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @ExtendWith(MockitoExtension.class)
-@WebMvcTest(ResourceNotFoundExceptionTest.TestController.class)
+@WebMvcTest(ExceptionHandlersTest.TestController.class)
 @ContextConfiguration(classes = {
-        ResourceNotFoundException.class,
-        ResourceNotFoundExceptionTest.TestController.class
+        ExceptionHandlers.class,
+        ExceptionHandlersTest.TestController.class
 })
 @AutoConfigureMockMvc
 @AutoConfigureWebClient
-class ResourceNotFoundExceptionTest {
+class ExceptionHandlersTest {
     @Autowired
     MockMvc mockMvc;
 
@@ -48,17 +48,8 @@ class ResourceNotFoundExceptionTest {
                 .build();
     }
 
-    @RestController
-    @RequestMapping("/test")
-    public static class TestController {
-        @PostMapping("/runtime-exception")
-        public ResponseEntity<String> runtimeException(@Valid @RequestBody Student student) {
-            throw new RuntimeException("Name is empty");
-        }
-    }
-
     @Test
-    void runtimeException_RuntimeException() throws Exception {
+    void runtimeException_ResourceNotFoundException() throws Exception {
         mockMvc
                 .perform(post("/test/runtime-exception")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -69,5 +60,14 @@ class ResourceNotFoundExceptionTest {
                 .andExpect(jsonPath("$.error",     equalTo(400)))
                 .andExpect(jsonPath("$.message",   containsString("Could not create user with name")))
                 .andExpect(jsonPath("$.path",      equalTo("uri=/test/runtime-exception")));
+    }
+
+    @RestController
+    @RequestMapping("/test")
+    public static class TestController {
+        @PostMapping("/runtime-exception")
+        public ResponseEntity<String> runtimeException(@Valid @RequestBody Student student) {
+            throw new ResourceNotFoundException("Name is empty");
+        }
     }
 }

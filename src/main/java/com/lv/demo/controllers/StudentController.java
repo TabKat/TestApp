@@ -1,6 +1,7 @@
 package com.lv.demo.controllers;
 
 import com.lv.demo.entities.Student;
+import com.lv.demo.exceptions.ResourceNotFoundException;
 import com.lv.demo.services.StudentService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -15,7 +16,7 @@ import java.net.URI;
 @RequestMapping("/api/v1/student")
 public class StudentController {
 
-    private StudentService studentService;
+    private final StudentService studentService;
 
     public StudentController(StudentService studentService) {
         this.studentService = studentService;
@@ -25,7 +26,7 @@ public class StudentController {
     public ResponseEntity<String> createStudent(@Valid @RequestBody Student st) {
         Student student = studentService.createStudent(st);
         if (student == null) {
-            throw new RuntimeException(st.getName());
+            throw new ResourceNotFoundException(st.getName());
         }
         return ResponseEntity.created(URI.create("/api/v1/student/" + student.getId())).build();
     }
